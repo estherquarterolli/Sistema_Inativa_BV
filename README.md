@@ -1,1 +1,99 @@
-# Sistema_Inativa-o_BV
+# Gerador de Planilha de Inativação
+
+Ferramenta web 100% gratuita (PHP + bibliotecas open-source) que substitui o
+processo manual de planilhas para gerar a lista de IDs a inativar.
+
+## Como funciona
+
+1. Você anexa a **planilha principal de alunos** (sempre atualizada), a
+   mesma que hoje é referenciada pelo `IMPORTRANGE` na sua fórmula.
+2. Você anexa até **10 documentos** (PDF, DOCX, XLSX, CSV ou TXT) contendo os
+   nomes dos alunos a inativar.
+3. O sistema extrai os nomes de cada documento e mostra uma tela de
+   **revisão** — um nome por linha, editável — antes de gerar qualquer coisa.
+4. Ao confirmar, ele normaliza cada nome exatamente como a sua fórmula do
+   Google Sheets fazia (minúsculas, sem acento, sem espaço duplo), procura o
+   ID correspondente na planilha principal e gera um `.xlsx` final:
+   - Aba **"Conteúdo"**: coluna `PESSOA ID`, formatada como **texto simples**
+     (igual ao seu modelo `Inativacao_modelo_.xlsx`).
+   - Aba **"Não Encontrados"**: nomes que não bateram com nenhum ID, para
+     você conferir manualmente.
+
+Nenhum dado é salvo permanentemente: os uploads são apagados assim que
+processados, e o arquivo gerado é apagado do servidor assim que baixado.
+
+## Arquitetura
+
+Organizado em MVC simples, sem framework pesado (mantém tudo gratuito e fácil
+de hospedar em qualquer servidor PHP comum):
+
+```
+public/index.php          Front controller + rotas
+src/Controllers/          Upload, Revisão, Geração, Download
+src/Services/              Regras de negócio (normalização, leitura da
+                            planilha, extratores de documento, matching,
+                            geração do arquivo final)
+src/Services/Extractors/   Um extrator por tipo de arquivo (PDF/DOCX/XLSX/CSV/TXT)
+src/Models/Student.php     Modelo do aluno
+views/                     HTML + Tailwind (via CDN, sem build step)
+storage/uploads|output/    Arquivos temporários
+```
+
+## Requisitos
+
+- PHP 8.1 ou superior, com as extensões `mbstring`, `xml`, `zip`, `gd`
+  (as mesmas exigidas pelo PhpSpreadsheet).
+- [Composer](https://getcomposer.org) para instalar as dependências.
+
+Bibliotecas usadas (todas open-source/MIT, sem custo e sem chave de API):
+
+- [`phpoffice/phpspreadsheet`](https://github.com/PHPOffice/PhpSpreadsheet) — ler/gerar `.xlsx`
+- [`phpoffice/phpword`](https://github.com/PHPOffice/PHPWord) — ler `.docx`
+- [`smalot/pdfparser`](https://github.com/smalot/pdfparser) — ler `.pdf`
+
+## Instalação
+
+```bash
+composer install
+```
+
+## Como rodar localmente (sem precisar de Apache/Nginx)
+
+```bash
+php -S localhost:8000 -t public public/index.php
+```
+
+Acesse `http://localhost:8000`.
+
+## Como colocar em um servidor com Apache
+
+Aponte o `DocumentRoot` para a pasta `public/` (o `.htaccess` já está
+configurado). Garanta que `storage/uploads` e `storage/output` tenham
+permissão de escrita pelo usuário do PHP (`chmod -R 775 storage`).
+
+## Ajustando limites de upload
+
+Como o app aceita a planilha principal + 10 documentos, verifique no seu
+`php.ini` (ou em um `.user.ini` na pasta `public/`):
+
+```ini
+upload_max_filesize = 20M
+post_max_size = 25M
+max_file_uploads = 20
+```
+
+## Sobre a coluna de nome/ID na planilha principal
+
+O sistema tenta detectar automaticamente, pelo cabeçalho, qual coluna tem o
+nome e qual tem o ID (procurando por "nome"/"aluno" e por "id" no texto do
+cabeçalho). Se não encontrar, ele usa o padrão da sua fórmula original:
+coluna **A** = nome, coluna **C** = ID. Se sua planilha tiver uma aba
+chamada **"Dados"**, essa aba é usada automaticamente (igual ao
+`IMPORTRANGE(...;"Dados!A:C")` que você já usava).
+
+## Extensões possíveis (não incluídas, para manter o projeto simples)
+
+- Autenticação/login, caso vá publicar a ferramenta para outras pessoas.
+- Histórico de lotes processados (hoje é "stateless": cada geração é isolada).
+- Busca "aproximada" (fuzzy match) para nomes com pequenas diferenças de
+  digitação — hoje a tela de revisão é o lugar para corrigir isso manualmente.

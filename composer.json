@@ -1,0 +1,17 @@
+{
+    "name": "escola/inativacao-alunos",
+    "description": "Gera planilha de inativacao de alunos a partir da planilha principal + documentos anexados",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "phpoffice/phpspreadsheet": "^2.1",
+        "phpoffice/phpword": "^1.2",
+        "smalot/pdfparser": "^2.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
