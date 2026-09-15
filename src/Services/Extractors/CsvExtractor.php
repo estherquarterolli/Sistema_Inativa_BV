@@ -6,7 +6,6 @@ class CsvExtractor implements ExtractorInterface
 {
     public function extract(string $filePath): array
     {
-        $lines = [];
         $handle = fopen($filePath, 'r');
 
         if ($handle === false) {
@@ -15,6 +14,15 @@ class CsvExtractor implements ExtractorInterface
 
         $header = fgetcsv($handle) ?: [];
         $nameColumn = $this->findNameColumn($header);
+
+        // Não presume mais que a coluna A contém nomes. Um CSV sem um
+        // cabeçalho reconhecível é ignorado para evitar contagens falsas.
+        if ($nameColumn === null) {
+            fclose($handle);
+            return [];
+        }
+
+        $lines = [];
 
         while (($row = fgetcsv($handle)) !== false) {
             $value = $row[$nameColumn] ?? ($row[0] ?? '');
@@ -28,7 +36,7 @@ class CsvExtractor implements ExtractorInterface
         return NameLineFilter::filter($lines);
     }
 
-    private function findNameColumn(array $header): int
+    private function findNameColumn(array $header): ?int
     {
         foreach ($header as $index => $value) {
             $value = mb_strtolower(trim((string) $value), 'UTF-8');
@@ -37,6 +45,6 @@ class CsvExtractor implements ExtractorInterface
             }
         }
 
-        return 0;
+        return null;
     }
 }

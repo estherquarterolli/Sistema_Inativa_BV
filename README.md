@@ -9,9 +9,10 @@ processo manual de planilhas para gerar a lista de IDs a inativar.
    mesma que hoje é referenciada pelo `IMPORTRANGE` na sua fórmula.
 2. Você anexa até **10 documentos** (PDF, DOCX, XLSX, CSV ou TXT) contendo os
    nomes dos alunos a inativar.
-3. O sistema extrai os nomes de cada documento e mostra uma tela de
-   **revisão** — um nome por linha, editável — antes de gerar qualquer coisa.
-4. Ao confirmar, ele normaliza cada nome exatamente como a sua fórmula do
+3. O sistema extrai os nomes de cada documento. Em planilhas XLSX/CSV, somente
+   uma coluna com cabeçalho reconhecido como nome/aluno/estudante é lida; abas
+   e arquivos sem essa coluna não entram na contagem.
+4. Em seguida, ele normaliza cada nome exatamente como a sua fórmula do
    Google Sheets fazia (minúsculas, sem acento, sem espaço duplo), procura o
    ID correspondente na planilha principal e gera um `.xlsx` final:
    - Aba **"Conteúdo"**: coluna `PESSOA ID`, formatada como **texto simples**
@@ -29,7 +30,7 @@ de hospedar em qualquer servidor PHP comum):
 
 ```
 public/index.php          Front controller + rotas
-src/Controllers/          Upload, Revisão, Geração, Download
+src/Controllers/          Upload, geração e download
 src/Services/              Regras de negócio (normalização, leitura da
                             planilha, extratores de documento, matching,
                             geração do arquivo final)
@@ -96,4 +97,4 @@ chamada **"Dados"**, essa aba é usada automaticamente (igual ao
 - Autenticação/login, caso vá publicar a ferramenta para outras pessoas.
 - Histórico de lotes processados (hoje é "stateless": cada geração é isolada).
 - Busca "aproximada" (fuzzy match) para nomes com pequenas diferenças de
-  digitação — hoje a tela de revisão é o lugar para corrigir isso manualmente.
+  digitação — hoje esses casos aparecem na lista de nomes não encontrados.

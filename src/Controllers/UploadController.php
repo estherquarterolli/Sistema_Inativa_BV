@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Core\View;
 use App\Services\Extractors\ExtractorFactory;
+use App\Services\MatchingService;
+use App\Services\OutputBuilder;
 use App\Services\SpreadsheetReader;
 
 class UploadController
@@ -30,7 +32,8 @@ class UploadController
                 return;
             }
 
-            $docs = [];
+            $allNames = [];
+            $fileCounts = [];
             $files = $_FILES['documentos'];
             $count = count($files['name']);
 
@@ -43,19 +46,43 @@ class UploadController
 
                 try {
                     $extractor = ExtractorFactory::make($tmpPath);
-                    $docs[$files['name'][$i]] = $extractor->extract($tmpPath);
+                    $names = $extractor->extract($tmpPath);
+                    $allNames = array_merge($allNames, $names);
+                    $fileCounts[] = [
+                        'arquivo' => (string) $files['name'][$i],
+                        'quantidade' => count($names),
+                    ];
                 } catch (\Throwable $e) {
-                    $docs[$files['name'][$i]] = [];
+                    $fileCounts[] = [
+                        'arquivo' => (string) $files['name'][$i],
+                        'quantidade' => 0,
+                    ];
                 } finally {
                     @unlink($tmpPath);
                 }
             }
 
-            $_SESSION['index'] = $index;
-            $_SESSION['docs'] = $docs;
+            if (empty($allNames)) {
+                $this->fail('Nenhum nome foi encontrado nos arquivos enviados. Nas planilhas, confira se a coluna possui um cabeçalho como "Nome do aluno".');
+                return;
+            }
 
-            header('Location: /revisar');
-            exit;
+            $matcher = new MatchingService();
+            $result = $matcher->match($allNames, $index);
+
+            $token = bin2hex(random_bytes(8));
+            $outputPath = __DIR__ . '/../../storage/output/' . $token . '.xlsx';
+
+            $builder = new OutputBuilder();
+            $builder->build($result['matched'], $result['unmatched'], $outputPath);
+
+            View::render('resultado', [
+                'total' => count($result['matched']) + count($result['unmatched']),
+                'encontrados' => count($result['matched']),
+                'naoEncontrados' => $result['unmatched'],
+                'contagensArquivos' => $fileCounts,
+                'token' => $token,
+            ]);
         } catch (\Throwable $e) {
             $this->fail('Erro ao processar arquivos: ' . $e->getMessage());
         }

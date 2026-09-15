@@ -1,41 +1,105 @@
+<?php
+$percentual = $total > 0 ? (int) round(($encontrados / $total) * 100) : 0;
+$quantidadeNaoEncontrados = count($naoEncontrados);
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planilha gerada</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="theme-color" content="#f4f0e8">
+<title>Resultado — Inativa aí</title>
+<link rel="stylesheet" href="/assets/app.css">
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
-<div class="w-full max-w-xl bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
-    <div class="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-        <span class="text-emerald-600 text-xl">✓</span>
-    </div>
-    <h1 class="text-2xl font-semibold text-slate-800 mb-2">Planilha gerada com sucesso</h1>
-    <p class="text-slate-500 mb-6">
-        <?= (int) $encontrados ?> de <?= (int) $total ?> nomes foram localizados e incluídos na planilha.
-    </p>
-
-    <a href="/baixar?token=<?= htmlspecialchars($token) ?>"
-       class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg transition mb-6">
-        Baixar planilha (.xlsx)
+<body class="result-page">
+<header class="result-header">
+    <a class="brand" href="/" aria-label="Inativa aí — início">
+        <span class="brand-word">Inativa aí</span>
+        <span class="brand-dot" aria-hidden="true"></span>
     </a>
+</header>
 
-    <?php if (!empty($naoEncontrados)): ?>
-    <div class="text-left mt-6">
-        <h2 class="text-sm font-medium text-slate-700 mb-2">
-            <?= count($naoEncontrados) ?> nome(s) não encontrados na planilha principal:
-        </h2>
-        <ul class="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto list-disc list-inside">
-            <?php foreach ($naoEncontrados as $nome): ?>
-            <li><?= htmlspecialchars($nome) ?></li>
-            <?php endforeach; ?>
-        </ul>
-        <p class="text-xs text-slate-400 mt-2">Esses nomes também ficam em uma aba separada dentro da planilha baixada.</p>
-    </div>
-    <?php endif; ?>
+<main class="result-main">
+    <article class="result-card">
+        <section class="result-hero">
+            <div class="success-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m5 12 4 4L19 6"/>
+                </svg>
+            </div>
 
-    <a href="/" class="block mt-6 text-sm text-indigo-600 hover:underline">Processar novo lote</a>
-</div>
+            <p class="card-kicker">Processamento concluído</p>
+            <h1>Sua planilha está pronta.</h1>
+            <p class="result-summary">
+                Encontramos <?= (int) $encontrados ?> de <?= (int) $total ?> nomes únicos nos arquivos enviados.
+            </p>
+
+            <div class="result-numbers" aria-label="Resumo do processamento">
+                <div class="result-number">
+                    <strong><?= (int) $total ?></strong>
+                    <span>nomes lidos</span>
+                </div>
+                <div class="result-number">
+                    <strong><?= (int) $encontrados ?></strong>
+                    <span>localizados</span>
+                </div>
+                <div class="result-number">
+                    <strong><?= $quantidadeNaoEncontrados ?></strong>
+                    <span>não encontrados</span>
+                </div>
+            </div>
+
+            <div class="match-track" aria-label="<?= $percentual ?>% dos nomes localizados">
+                <div class="match-fill" style="width: <?= $percentual ?>%"></div>
+            </div>
+
+            <a class="download-button" href="/baixar?token=<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>
+                </svg>
+                Baixar planilha final
+            </a>
+        </section>
+
+        <div class="result-details">
+            <?php if (!empty($contagensArquivos)): ?>
+            <section class="section-box" aria-labelledby="files-title">
+                <h2 id="files-title" class="section-heading">
+                    <span>Nomes lidos por arquivo</span>
+                    <span><?= count($contagensArquivos) ?> arquivo(s)</span>
+                </h2>
+                <ul class="file-counts">
+                    <?php foreach ($contagensArquivos as $item): ?>
+                    <li>
+                        <span title="<?= htmlspecialchars($item['arquivo'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($item['arquivo'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="count-pill"><?= (int) $item['quantidade'] ?></span>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
+            <?php endif; ?>
+
+            <?php if (!empty($naoEncontrados)): ?>
+            <section class="section-box" aria-labelledby="missing-title">
+                <h2 id="missing-title" class="section-heading">O que precisa de atenção</h2>
+                <details class="missing-details">
+                    <summary><?= $quantidadeNaoEncontrados ?> nome(s) não encontrados na base principal</summary>
+                    <ol class="missing-list">
+                        <?php foreach ($naoEncontrados as $nome): ?>
+                        <li><?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ol>
+                    <p class="missing-note">Eles também estão separados em uma aba dentro da planilha baixada.</p>
+                </details>
+            </section>
+            <?php endif; ?>
+
+            <a class="new-batch" href="/">
+                <span aria-hidden="true">←</span>
+                Processar um novo lote
+            </a>
+        </div>
+    </article>
+</main>
 </body>
 </html>
