@@ -344,6 +344,11 @@ a {
     line-height: 1.45;
 }
 
+.field-note.is-error {
+    color: var(--red);
+    font-weight: 700;
+}
+
 .primary-button {
     display: flex;
     width: 100%;

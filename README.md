@@ -83,6 +83,21 @@ post_max_size = 25M
 max_file_uploads = 20
 ```
 
+## Publicação gratuita na Vercel
+
+O projeto inclui `vercel.json`, `api/index.php` e `api/php.ini` preparados para
+o runtime comunitário `vercel-php` com PHP 8.5. Para publicar, importe este
+repositório no painel da Vercel e mantenha as configurações detectadas.
+
+Como as Functions não garantem arquivos temporários entre requisições, na
+Vercel a planilha final é incorporada à página de resultado e baixada
+diretamente pelo navegador. Localmente, o download por token continua sendo
+usado normalmente.
+
+A Vercel limita o corpo de uma requisição de Function a 4,5 MB. Por segurança,
+a interface limita a soma dos arquivos enviados a 4 MB quando detecta o
+ambiente da Vercel.
+
 ## Sobre a coluna de nome/ID na planilha principal
 
 O sistema tenta detectar automaticamente, pelo cabeçalho, qual coluna tem o

@@ -38,7 +38,11 @@
         </div>
         <?php endif; ?>
 
-        <form id="upload-form" action="/processar" method="POST" enctype="multipart/form-data">
+        <form id="upload-form"
+              action="/processar"
+              method="POST"
+              enctype="multipart/form-data"
+              data-max-total-bytes="<?= getenv('VERCEL') !== false ? 4194304 : 0 ?>">
             <div class="form-step">
                 <div class="step-heading">
                     <span class="step-number">1</span>
@@ -81,7 +85,10 @@
                         <span class="upload-help" data-file-summary="source-files">PDF, DOCX, XLSX, CSV ou TXT</span>
                     </span>
                 </label>
-                <p class="field-note">Nas planilhas, somente a coluna identificada como nome, aluno ou estudante entra na contagem.</p>
+                <p id="upload-guidance" class="field-note">
+                    Nas planilhas, somente a coluna identificada como nome, aluno ou estudante entra na contagem.
+                    <?php if (getenv('VERCEL') !== false): ?>O total dos arquivos deve ter até 4 MB.<?php endif; ?>
+                </p>
             </div>
 
             <button id="submit-button" class="primary-button" type="submit">

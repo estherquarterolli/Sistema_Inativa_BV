@@ -5,8 +5,34 @@
     const ring = document.getElementById('progress-ring');
     const value = document.getElementById('progress-value');
     const message = document.getElementById('progress-message');
+    const mainInput = document.getElementById('main-file');
+    const sourceInput = document.getElementById('source-files');
+    const uploadGuidance = document.getElementById('upload-guidance');
+    const defaultGuidance = uploadGuidance.textContent.trim().replace(/\s+/g, ' ');
+    const maxTotalBytes = Number(form.dataset.maxTotalBytes || 0);
     let processingTimer = null;
     let currentProgress = 0;
+
+    const validateSelection = () => {
+        const sourceFiles = Array.from(sourceInput.files ?? []);
+        const allFiles = [
+            ...Array.from(mainInput.files ?? []),
+            ...sourceFiles,
+        ];
+        const totalBytes = allFiles.reduce((sum, file) => sum + file.size, 0);
+        let error = '';
+
+        if (sourceFiles.length > 10) {
+            error = 'Selecione no máximo 10 arquivos com nomes.';
+        } else if (maxTotalBytes > 0 && totalBytes > maxTotalBytes) {
+            error = 'Na Vercel, o tamanho total dos arquivos deve ser de até 4 MB.';
+        }
+
+        mainInput.setCustomValidity(error);
+        sourceInput.setCustomValidity(error);
+        uploadGuidance.textContent = error || defaultGuidance;
+        uploadGuidance.classList.toggle('is-error', error !== '');
+    };
 
     const describeFiles = (input) => {
         const output = document.querySelector(`[data-file-summary="${input.id}"]`);
@@ -18,6 +44,7 @@
         if (files.length === 0) {
             output.textContent = input.multiple ? 'Nenhum arquivo escolhido' : 'Nenhuma planilha escolhida';
             output.className = 'upload-help';
+            validateSelection();
             return;
         }
 
@@ -25,12 +52,12 @@
             const firstNames = files.slice(0, 2).map((file) => file.name).join(', ');
             const remainder = files.length > 2 ? ` e mais ${files.length - 2}` : '';
             output.textContent = `${files.length} arquivo(s): ${firstNames}${remainder}`;
-            input.setCustomValidity(files.length > 10 ? 'Selecione no máximo 10 arquivos.' : '');
         } else {
             output.textContent = files[0].name;
         }
 
         output.className = 'selected-files';
+        validateSelection();
     };
 
     document.querySelectorAll('input[type="file"]').forEach((input) => {

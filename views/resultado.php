@@ -1,6 +1,9 @@
 <?php
 $percentual = $total > 0 ? (int) round(($encontrados / $total) * 100) : 0;
 $quantidadeNaoEncontrados = count($naoEncontrados);
+$downloadHref = !empty($downloadData)
+    ? $downloadData
+    : '/baixar?token=' . rawurlencode($token);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -53,7 +56,9 @@ $quantidadeNaoEncontrados = count($naoEncontrados);
                 <div class="match-fill" style="width: <?= $percentual ?>%"></div>
             </div>
 
-            <a class="download-button" href="/baixar?token=<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
+            <a class="download-button"
+               href="<?= htmlspecialchars($downloadHref, ENT_QUOTES, 'UTF-8') ?>"
+               download="inativacao.xlsx">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>
                 </svg>

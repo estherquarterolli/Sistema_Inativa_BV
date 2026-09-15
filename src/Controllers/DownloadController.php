@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Core\Storage;
+
 class DownloadController
 {
     public function baixar(string $token): void
     {
         $token = preg_replace('/[^a-f0-9]/', '', $token) ?? '';
-        $path = __DIR__ . '/../../storage/output/' . $token . '.xlsx';
+        $path = Storage::outputPath($token);
 
         if ($token === '' || !is_file($path)) {
             http_response_code(404);
