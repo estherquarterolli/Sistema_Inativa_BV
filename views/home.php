@@ -16,7 +16,7 @@
         </a>
 
         <p class="intro-copy">
-            Envie a base principal e os arquivos com os nomes. A gente cruza os dados e prepara a planilha final para você.
+            Envie a base principal e os arquivos com os nomes.
         </p>
 
         <ul class="benefits" aria-label="Benefícios">
